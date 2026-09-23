@@ -3,9 +3,8 @@ import type { RecorderState } from '../recorder';
 
 export interface FloatingButtonHandlers {
 	onStart: () => void;
-	onPauseToggle: () => void;
-	onStop: () => void;
-	onDiscard: () => void;
+	/** Reopen the recorder dialog from the minimised pill. */
+	onExpand: () => void;
 }
 
 export function formatElapsed(ms: number): string {
@@ -19,15 +18,15 @@ export function formatElapsed(ms: number): string {
 
 /**
  * Small floating control in the bottom-right corner.
- * Idle: a single faded mic button. Active: a compact pill with timer, pause and stop.
+ * Idle: a single faded mic button. While a recording runs with its dialog
+ * minimised: a pill with the recording dot and timer that reopens the dialog.
  */
 export class FloatingButton {
 	private el: HTMLElement;
 	private micBtn: HTMLButtonElement;
-	private pill: HTMLElement;
+	private pill: HTMLButtonElement;
 	private dot: HTMLElement;
 	private timeEl: HTMLElement;
-	private pauseBtn: HTMLButtonElement;
 
 	constructor(parent: HTMLElement, handlers: FloatingButtonHandlers) {
 		this.el = parent.createDiv({ cls: 'audio-button-container' });
@@ -37,24 +36,14 @@ export class FloatingButton {
 		setTooltip(this.micBtn, 'Start recording', { placement: 'left' });
 		this.micBtn.addEventListener('click', handlers.onStart);
 
-		this.pill = this.el.createDiv({ cls: 'audio-button-pill' });
+		this.pill = this.el.createEl('button', { cls: 'audio-button-pill' });
+		setTooltip(this.pill, 'Show recorder', { placement: 'top' });
+		this.pill.addEventListener('click', handlers.onExpand);
 		this.dot = this.pill.createSpan({ cls: 'audio-button-dot' });
 		this.timeEl = this.pill.createSpan({ cls: 'audio-button-time', text: '00:00' });
+		setIcon(this.pill.createSpan({ cls: 'audio-button-expand' }), 'chevron-up');
 
-		this.pauseBtn = this.pill.createEl('button', { cls: 'clickable-icon' });
-		this.pauseBtn.addEventListener('click', handlers.onPauseToggle);
-
-		const stopBtn = this.pill.createEl('button', { cls: 'clickable-icon' });
-		setIcon(stopBtn, 'square');
-		setTooltip(stopBtn, 'Stop and save', { placement: 'top' });
-		stopBtn.addEventListener('click', handlers.onStop);
-
-		const discardBtn = this.pill.createEl('button', { cls: 'clickable-icon' });
-		setIcon(discardBtn, 'x');
-		setTooltip(discardBtn, 'Discard recording', { placement: 'top' });
-		discardBtn.addEventListener('click', handlers.onDiscard);
-
-		this.setState('idle');
+		this.setState('idle', false);
 		this.setVisible(false);
 	}
 
@@ -62,13 +51,12 @@ export class FloatingButton {
 		this.el.toggleClass('is-hidden', !visible);
 	}
 
-	setState(state: RecorderState): void {
+	/** `expanded`: the recorder dialog is open, so the pill steps aside. */
+	setState(state: RecorderState, expanded: boolean): void {
 		const active = state !== 'idle';
 		this.micBtn.toggleClass('is-hidden', active);
-		this.pill.toggleClass('is-hidden', !active);
+		this.pill.toggleClass('is-hidden', !active || expanded);
 		this.dot.toggleClass('is-paused', state === 'paused');
-		setIcon(this.pauseBtn, state === 'paused' ? 'play' : 'pause');
-		setTooltip(this.pauseBtn, state === 'paused' ? 'Resume' : 'Pause', { placement: 'top' });
 		if (!active) this.setElapsed(0);
 	}
 

@@ -1,46 +1,43 @@
 import { MarkdownView, normalizePath, Notice, Plugin, TFile } from 'obsidian';
-import { AudioButtonSettings, AudioButtonSettingTab, DEFAULT_SETTINGS } from './settings';
+import { AudioButtonSettings, AudioButtonSettingTab, loadSettings } from './settings';
+import { registerCommands } from './commands';
 import { matchesFile } from './matcher';
-import { AudioRecorder, extensionFor, Recording } from './recorder';
+import { AudioRecorder, extensionFor, Recording, RecorderState } from './recorder';
 import { FloatingButton } from './ui/floating-button';
+import { RecorderModal } from './ui/recorder-modal';
 
 export default class AudioButtonPlugin extends Plugin {
 	settings!: AudioButtonSettings;
 	private recorder = new AudioRecorder();
 	private button!: FloatingButton;
+	private modal!: RecorderModal;
+	/** Whether the recorder dialog is open (not minimised). */
+	private expanded = false;
 	private tickTimer: number | null = null;
 	/** The note the current recording belongs to. */
 	private targetFile: TFile | null = null;
+	private ribbonIcon: HTMLElement | null = null;
 
 	async onload() {
 		await this.loadSettings();
 
 		this.button = new FloatingButton(document.body, {
 			onStart: () => void this.startRecording(),
+			onExpand: () => this.openRecorder(),
+		});
+		this.modal = new RecorderModal(this.app, {
 			onPauseToggle: () => this.togglePause(),
 			onStop: () => void this.stopRecording(),
 			onDiscard: () => this.discardRecording(),
+			onClose: () => {
+				this.expanded = false;
+				this.updateUi();
+			},
 		});
 
 		this.addSettingTab(new AudioButtonSettingTab(this.app, this));
 
-		this.addCommand({
-			id: 'toggle-recording',
-			name: 'Start/stop recording',
-			callback: () => {
-				if (this.recorder.state === 'idle') void this.startRecording();
-				else void this.stopRecording();
-			},
-		});
-		this.addCommand({
-			id: 'toggle-pause',
-			name: 'Pause/resume recording',
-			checkCallback: (checking) => {
-				if (this.recorder.state === 'idle') return false;
-				if (!checking) this.togglePause();
-				return true;
-			},
-		});
+		registerCommands(this);
 
 		const refresh = () => this.refreshVisibility();
 		this.registerEvent(this.app.workspace.on('active-leaf-change', refresh));
@@ -52,25 +49,45 @@ export default class AudioButtonPlugin extends Plugin {
 		);
 		this.registerEvent(this.app.vault.on('rename', refresh));
 		this.app.workspace.onLayoutReady(refresh);
+		this.updateRibbonIcon();
 	}
 
 	onunload() {
 		this.stopTicking();
 		this.recorder.discard();
+		this.modal.close();
 		this.button.destroy();
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			(await this.loadData()) as Partial<AudioButtonSettings>,
-		);
+		this.settings = loadSettings(await this.loadData());
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
 		this.refreshVisibility();
+		this.updateRibbonIcon();
+	}
+
+	/** Add or remove the left sidebar record button to match the setting. */
+	private updateRibbonIcon() {
+		if (this.settings.showRibbonIcon && !this.ribbonIcon) {
+			this.ribbonIcon = this.addRibbonIcon('mic', 'Start/stop recording', () =>
+				this.toggleRecording(),
+			);
+		} else if (!this.settings.showRibbonIcon && this.ribbonIcon) {
+			this.ribbonIcon.remove();
+			this.ribbonIcon = null;
+		}
+	}
+
+	get recordingState(): RecorderState {
+		return this.recorder.state;
+	}
+
+	toggleRecording() {
+		if (this.recorder.state === 'idle') void this.startRecording();
+		else void this.stopRecording();
 	}
 
 	/** Show the button on matching notes, and always while a recording is in progress. */
@@ -80,7 +97,7 @@ export default class AudioButtonPlugin extends Plugin {
 		this.button.setVisible(visible);
 	}
 
-	private async startRecording() {
+	async startRecording() {
 		const file = this.app.workspace.getActiveFile();
 		if (!file) {
 			new Notice('Open a note to record into.');
@@ -94,19 +111,36 @@ export default class AudioButtonPlugin extends Plugin {
 			return;
 		}
 		this.targetFile = file;
-		this.button.setState('recording');
+		this.modal.setTarget(file.name);
 		this.startTicking();
+		this.openRecorder();
 		this.refreshVisibility();
 	}
 
-	private togglePause() {
-		if (this.recorder.state === 'recording') this.recorder.pause();
-		else if (this.recorder.state === 'paused') this.recorder.resume();
-		this.button.setState(this.recorder.state);
-		this.button.setElapsed(this.recorder.elapsedMs);
+	/** Open the recorder dialog for the recording in progress. */
+	openRecorder() {
+		if (this.recorder.state === 'idle' || this.expanded) return;
+		this.expanded = true;
+		this.modal.open();
+		this.updateUi();
 	}
 
-	private async stopRecording() {
+	togglePause() {
+		if (this.recorder.state === 'recording') this.recorder.pause();
+		else if (this.recorder.state === 'paused') this.recorder.resume();
+		this.updateUi();
+	}
+
+	/** Sync the floating control and the dialog with the recorder. */
+	private updateUi() {
+		const state = this.recorder.state;
+		this.button.setState(state, this.expanded);
+		this.modal.setState(state);
+		this.button.setElapsed(this.recorder.elapsedMs);
+		this.modal.setElapsed(this.recorder.elapsedMs);
+	}
+
+	async stopRecording() {
 		const target = this.targetFile;
 		const recording = await this.recorder.stop();
 		this.resetUi();
@@ -128,7 +162,8 @@ export default class AudioButtonPlugin extends Plugin {
 	private resetUi() {
 		this.stopTicking();
 		this.targetFile = null;
-		this.button.setState('idle');
+		this.modal.close();
+		this.updateUi();
 		this.refreshVisibility();
 	}
 
@@ -174,9 +209,14 @@ export default class AudioButtonPlugin extends Plugin {
 
 	private startTicking() {
 		this.stopTicking();
+		// ~16fps for the level meter; the timer rides along.
 		this.tickTimer = window.setInterval(() => {
-			this.button.setElapsed(this.recorder.elapsedMs);
-		}, 250);
+			const elapsed = this.recorder.elapsedMs;
+			this.button.setElapsed(elapsed);
+			if (!this.expanded) return;
+			this.modal.setElapsed(elapsed);
+			if (this.recorder.state === 'recording') this.modal.pushLevel(this.recorder.level);
+		}, 1000 / 16);
 		this.registerInterval(this.tickTimer);
 	}
 

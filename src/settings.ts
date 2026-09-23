@@ -1,16 +1,18 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import type AudioButtonPlugin from './main';
 
-export type MatchMode = 'any' | 'all';
+export type Scope = 'all' | 'folder' | 'tag';
 export type InsertPosition = 'cursor' | 'end';
 
 export interface AudioButtonSettings {
-	/** Folder paths; a note matches if it lives in one of them (recursively). */
-	folders: string[];
-	/** Tags without the leading '#'; nested tags (tag/child) also match. */
-	tags: string[];
-	/** When both folders and tags are set: match either rule, or require both. */
-	matchMode: MatchMode;
+	/** Which notes show the floating button. */
+	scope: Scope;
+	/** Folder path used when scope is 'folder'. Subfolders are included. */
+	folder: string;
+	/** Tag without the leading '#', used when scope is 'tag'. Nested tags also match. */
+	tag: string;
+	/** Whether to add a record button to the left sidebar ribbon. */
+	showRibbonIcon: boolean;
 	/** Where recordings are saved. Empty = use Obsidian's attachment location. */
 	recordingsFolder: string;
 	/** Where the embed link is inserted in the note. */
@@ -18,19 +20,40 @@ export interface AudioButtonSettings {
 }
 
 export const DEFAULT_SETTINGS: AudioButtonSettings = {
-	folders: [],
-	tags: [],
-	matchMode: 'any',
+	scope: 'all',
+	folder: '',
+	tag: '',
+	showRibbonIcon: true,
 	recordingsFolder: '',
 	insertPosition: 'end',
 };
 
-function parseList(value: string): string[] {
-	return value
-		.split(/[\n,]/)
-		.map((s) => s.trim())
-		.filter((s) => s.length > 0);
+/** Settings saved by 0.1.0, which allowed several folders and tags. */
+interface LegacySettings {
+	folders?: string[];
+	tags?: string[];
+	matchMode?: string;
 }
+
+/** Merge saved data with defaults, converting the old folders/tags lists to a single scope. */
+export function loadSettings(data: unknown): AudioButtonSettings {
+	const saved = (data ?? {}) as Partial<AudioButtonSettings> & LegacySettings;
+	const { folders, tags, matchMode: _matchMode, ...rest } = saved;
+	const settings: AudioButtonSettings = Object.assign({}, DEFAULT_SETTINGS, rest);
+
+	if (saved.scope === undefined) {
+		if (folders?.[0]) {
+			settings.scope = 'folder';
+			settings.folder = folders[0];
+		} else if (tags?.[0]) {
+			settings.scope = 'tag';
+			settings.tag = tags[0];
+		}
+	}
+	return settings;
+}
+
+const trimSlashes = (path: string) => path.trim().replace(/^\/+|\/+$/g, '');
 
 export class AudioButtonSettingTab extends PluginSettingTab {
 	plugin: AudioButtonPlugin;
@@ -42,52 +65,65 @@ export class AudioButtonSettingTab extends PluginSettingTab {
 
 	display(): void {
 		const { containerEl } = this;
+		const { settings } = this.plugin;
 		containerEl.empty();
 
-		new Setting(containerEl).setName('Which notes show the button').setHeading();
+		new Setting(containerEl).setName('Button').setHeading();
 
 		new Setting(containerEl)
-			.setName('Folders')
-			.setDesc(
-				'One per line or comma-separated. Subfolders are included. Leave folders and tags empty to show the button on every note.',
-			)
-			.addTextArea((text) =>
-				text
-					.setPlaceholder('Meetings')
-					.setValue(this.plugin.settings.folders.join('\n'))
-					.onChange(async (value) => {
-						this.plugin.settings.folders = parseList(value).map((f) =>
-							f.replace(/^\/+|\/+$/g, ''),
-						);
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName('Tags')
-			.setDesc('One per line or comma-separated, with or without "#". Nested tags also match.')
-			.addTextArea((text) =>
-				text
-					.setPlaceholder('#meeting')
-					.setValue(this.plugin.settings.tags.join('\n'))
-					.onChange(async (value) => {
-						this.plugin.settings.tags = parseList(value).map((t) => t.replace(/^#/, ''));
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName('Match mode')
-			.setDesc('Used when both folders and tags are set.')
+			.setName('Show the button on')
+			.setDesc('Which notes show the floating record button.')
 			.addDropdown((dd) =>
 				dd
-					.addOption('any', 'In a folder or has a tag')
-					.addOption('all', 'In a folder and has a tag')
-					.setValue(this.plugin.settings.matchMode)
+					.addOption('all', 'All notes')
+					.addOption('folder', 'Notes in a folder')
+					.addOption('tag', 'Notes with a tag')
+					.setValue(settings.scope)
 					.onChange(async (value) => {
-						this.plugin.settings.matchMode = value as MatchMode;
+						settings.scope = value as Scope;
 						await this.plugin.saveSettings();
+						this.display();
 					}),
+			);
+
+		if (settings.scope === 'folder') {
+			new Setting(containerEl)
+				.setName('Folder')
+				.setDesc('Subfolders are included.')
+				.addText((text) =>
+					text
+						.setPlaceholder('Meetings')
+						.setValue(settings.folder)
+						.onChange(async (value) => {
+							settings.folder = trimSlashes(value);
+							await this.plugin.saveSettings();
+						}),
+				);
+		}
+
+		if (settings.scope === 'tag') {
+			new Setting(containerEl)
+				.setName('Tag')
+				.setDesc('With or without "#". Nested tags also match.')
+				.addText((text) =>
+					text
+						.setPlaceholder('#meeting')
+						.setValue(settings.tag)
+						.onChange(async (value) => {
+							settings.tag = value.trim().replace(/^#/, '');
+							await this.plugin.saveSettings();
+						}),
+				);
+		}
+
+		new Setting(containerEl)
+			.setName('Show in the left sidebar')
+			.setDesc('Add a record button to the ribbon. It starts and stops recording for the open note.')
+			.addToggle((toggle) =>
+				toggle.setValue(settings.showRibbonIcon).onChange(async (value) => {
+					settings.showRibbonIcon = value;
+					await this.plugin.saveSettings();
+				}),
 			);
 
 		new Setting(containerEl).setName('Recordings').setHeading();
@@ -98,9 +134,9 @@ export class AudioButtonSettingTab extends PluginSettingTab {
 			.addText((text) =>
 				text
 					.setPlaceholder('Recordings')
-					.setValue(this.plugin.settings.recordingsFolder)
+					.setValue(settings.recordingsFolder)
 					.onChange(async (value) => {
-						this.plugin.settings.recordingsFolder = value.trim().replace(/^\/+|\/+$/g, '');
+						settings.recordingsFolder = trimSlashes(value);
 						await this.plugin.saveSettings();
 					}),
 			);
@@ -112,9 +148,9 @@ export class AudioButtonSettingTab extends PluginSettingTab {
 				dd
 					.addOption('end', 'At the end of the note')
 					.addOption('cursor', 'At the editing position (if the note is open)')
-					.setValue(this.plugin.settings.insertPosition)
+					.setValue(settings.insertPosition)
 					.onChange(async (value) => {
-						this.plugin.settings.insertPosition = value as InsertPosition;
+						settings.insertPosition = value as InsertPosition;
 						await this.plugin.saveSettings();
 					}),
 			);

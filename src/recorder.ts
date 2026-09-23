@@ -26,6 +26,9 @@ export class AudioRecorder {
 	private recorder: MediaRecorder | null = null;
 	private stream: MediaStream | null = null;
 	private chunks: Blob[] = [];
+	private audioContext: AudioContext | null = null;
+	private analyser: AnalyserNode | null = null;
+	private samples: Float32Array<ArrayBuffer> | null = null;
 	private accumulatedMs = 0;
 	private segmentStart = 0;
 
@@ -40,6 +43,17 @@ export class AudioRecorder {
 			: this.accumulatedMs;
 	}
 
+	/** Current input loudness from 0 (silence) to 1, for the level meter. */
+	get level(): number {
+		if (!this.analyser || !this.samples) return 0;
+		this.analyser.getFloatTimeDomainData(this.samples);
+		let sum = 0;
+		for (const s of this.samples) sum += s * s;
+		const rms = Math.sqrt(sum / this.samples.length);
+		// Speech RMS rarely goes above ~0.3; scale so normal talking fills the meter.
+		return Math.min(1, rms * 4);
+	}
+
 	async start(): Promise<void> {
 		if (this.state !== 'idle') return;
 		this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -50,6 +64,7 @@ export class AudioRecorder {
 		this.recorder.addEventListener('dataavailable', (e) => {
 			if (e.data.size > 0) this.chunks.push(e.data);
 		});
+		this.startMeter(this.stream);
 		this.recorder.start(1000);
 		this.segmentStart = performance.now();
 	}
@@ -92,7 +107,24 @@ export class AudioRecorder {
 		this.cleanup();
 	}
 
+	private startMeter(stream: MediaStream): void {
+		try {
+			this.audioContext = new AudioContext();
+			this.analyser = this.audioContext.createAnalyser();
+			this.analyser.fftSize = 1024;
+			this.audioContext.createMediaStreamSource(stream).connect(this.analyser);
+			this.samples = new Float32Array(this.analyser.fftSize);
+		} catch (err) {
+			// The meter is cosmetic; recording works without it.
+			console.warn('Audio button: level meter unavailable', err);
+		}
+	}
+
 	private cleanup(): void {
+		void this.audioContext?.close();
+		this.audioContext = null;
+		this.analyser = null;
+		this.samples = null;
 		this.stream?.getTracks().forEach((t) => t.stop());
 		this.stream = null;
 		this.recorder = null;
