@@ -68,7 +68,7 @@ export class AudioButtonSettingTab extends PluginSettingTab {
 			.setDesc('One per line or comma-separated, with or without "#". Nested tags also match.')
 			.addTextArea((text) =>
 				text
-					.setPlaceholder('meeting, voice-note')
+					.setPlaceholder('#meeting')
 					.setValue(this.plugin.settings.tags.join('\n'))
 					.onChange(async (value) => {
 						this.plugin.settings.tags = parseList(value).map((t) => t.replace(/^#/, ''));
@@ -111,7 +111,7 @@ export class AudioButtonSettingTab extends PluginSettingTab {
 			.addDropdown((dd) =>
 				dd
 					.addOption('end', 'At the end of the note')
-					.addOption('cursor', 'Where the cursor is (if the note is open)')
+					.addOption('cursor', 'At the editing position (if the note is open)')
 					.setValue(this.plugin.settings.insertPosition)
 					.onChange(async (value) => {
 						this.plugin.settings.insertPosition = value as InsertPosition;
