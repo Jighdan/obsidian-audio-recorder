@@ -11,9 +11,9 @@ A small floating button in the bottom-right corner for recording voice notes in 
 ## Development
 
 ```bash
-npm install
-npm run dev     # watch build
-npm run build   # production build
+pnpm install
+pnpm dev     # watch build
+pnpm build   # production build
 ```
 
 To build straight into a vault, create a `.env` file with:
