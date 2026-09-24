@@ -1,5 +1,5 @@
 import { App, getAllTags, TFile } from 'obsidian';
-import type { AudioButtonSettings } from './settings';
+import type { AudioRecorderSettings } from './settings';
 
 function inFolder(file: TFile, folder: string): boolean {
 	return folder === '' || file.path.startsWith(folder + '/');
@@ -16,7 +16,7 @@ function hasTag(app: App, file: TFile, tag: string): boolean {
 }
 
 /** Whether the floating record button should be shown for this note. */
-export function matchesFile(app: App, file: TFile | null, settings: AudioButtonSettings): boolean {
+export function matchesFile(app: App, file: TFile | null, settings: AudioRecorderSettings): boolean {
 	if (!file || file.extension !== 'md') return false;
 
 	switch (settings.scope) {

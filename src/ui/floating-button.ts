@@ -29,19 +29,19 @@ export class FloatingButton {
 	private timeEl: HTMLElement;
 
 	constructor(parent: HTMLElement, handlers: FloatingButtonHandlers) {
-		this.el = parent.createDiv({ cls: 'audio-button-container' });
+		this.el = parent.createDiv({ cls: 'audio-recorder-container' });
 
-		this.micBtn = this.el.createEl('button', { cls: 'audio-button-mic clickable-icon' });
+		this.micBtn = this.el.createEl('button', { cls: 'audio-recorder-mic clickable-icon' });
 		setIcon(this.micBtn, 'mic');
 		setTooltip(this.micBtn, 'Start recording', { placement: 'left' });
 		this.micBtn.addEventListener('click', handlers.onStart);
 
-		this.pill = this.el.createEl('button', { cls: 'audio-button-pill' });
+		this.pill = this.el.createEl('button', { cls: 'audio-recorder-pill' });
 		setTooltip(this.pill, 'Show recorder', { placement: 'top' });
 		this.pill.addEventListener('click', handlers.onExpand);
-		this.dot = this.pill.createSpan({ cls: 'audio-button-dot' });
-		this.timeEl = this.pill.createSpan({ cls: 'audio-button-time', text: '00:00' });
-		setIcon(this.pill.createSpan({ cls: 'audio-button-expand' }), 'chevron-up');
+		this.dot = this.pill.createSpan({ cls: 'audio-recorder-dot' });
+		this.timeEl = this.pill.createSpan({ cls: 'audio-recorder-time', text: '00:00' });
+		setIcon(this.pill.createSpan({ cls: 'audio-recorder-expand' }), 'chevron-up');
 
 		this.setState('idle', false);
 		this.setVisible(false);

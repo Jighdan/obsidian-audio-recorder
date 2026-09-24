@@ -29,4 +29,10 @@ export default defineConfig(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		rules: {
+			// getSettingDefinitions() needs Obsidian 1.13; minAppVersion is 1.5.7.
+			'obsidianmd/settings-tab/prefer-setting-definitions': 'off',
+		},
+	},
 );

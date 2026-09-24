@@ -1,4 +1,4 @@
-.audio-button-container {
+.audio-recorder-container {
 	position: fixed;
 	right: 20px;
 	bottom: 40px;
@@ -7,17 +7,17 @@
 	--icon-stroke: 2px;
 }
 
-.is-mobile .audio-button-container {
+.is-mobile .audio-recorder-container {
 	bottom: calc(var(--mobile-toolbar-height, 48px) + 24px);
 }
 
-.audio-button-container.is-hidden,
-.audio-button-container .is-hidden {
+.audio-recorder-container.is-hidden,
+.audio-recorder-container .is-hidden {
 	display: none;
 }
 
 /* Idle: 32px mic circle */
-.audio-button-mic {
+.audio-recorder-mic {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -35,21 +35,21 @@
 		color 150ms ease;
 }
 
-.audio-button-mic:hover,
-.audio-button-mic:focus-visible {
+.audio-recorder-mic:hover,
+.audio-recorder-mic:focus-visible {
 	opacity: 1;
 	color: var(--text-normal);
 	background-color: var(--background-secondary);
 }
 
-.audio-button-mic:focus-visible {
+.audio-recorder-mic:focus-visible {
 	box-shadow:
 		var(--shadow-s),
 		0 0 0 2px var(--interactive-accent);
 }
 
 /* Minimised recording: 32px pill that reopens the dialog */
-.audio-button-pill {
+.audio-recorder-pill {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -63,32 +63,32 @@
 	cursor: var(--cursor);
 }
 
-.audio-button-pill:hover {
+.audio-recorder-pill:hover {
 	background-color: var(--background-modifier-hover);
 }
 
-.audio-button-pill:focus-visible {
+.audio-recorder-pill:focus-visible {
 	box-shadow:
 		var(--shadow-s),
 		0 0 0 2px var(--interactive-accent);
 }
 
-.audio-button-dot {
+.audio-recorder-dot {
 	flex: none;
 	width: 8px;
 	height: 8px;
 	margin: 0 2px;
 	border-radius: 50%;
 	background-color: var(--color-red);
-	animation: audio-button-pulse 1.4s ease-in-out infinite;
+	animation: audio-recorder-pulse 1.4s ease-in-out infinite;
 }
 
-.audio-button-dot.is-paused {
+.audio-recorder-dot.is-paused {
 	background-color: var(--text-muted);
 	animation: none;
 }
 
-.audio-button-time {
+.audio-recorder-time {
 	font-family: var(--font-monospace);
 	font-size: 13px;
 	line-height: 1.4;
@@ -97,50 +97,45 @@
 	color: var(--text-normal);
 }
 
-.audio-button-expand {
+.audio-recorder-expand {
 	display: flex;
 	color: var(--text-faint);
 	--icon-size: 14px;
 }
 
-.is-mobile .audio-button-mic {
+.is-mobile .audio-recorder-mic {
 	width: 44px;
 	height: 44px;
 	--icon-size: 20px;
 }
 
-.is-mobile .audio-button-mic:active {
+.is-mobile .audio-recorder-mic:active {
 	opacity: 1;
 	color: var(--text-normal);
 	background-color: var(--background-modifier-hover);
 }
 
-.is-mobile .audio-button-pill {
+.is-mobile .audio-recorder-pill {
 	gap: 6px;
 	height: 44px;
 	padding: 4px 12px 4px 8px;
 }
 
-.is-mobile .audio-button-dot {
+.is-mobile .audio-recorder-dot {
 	width: 10px;
 	height: 10px;
 }
 
-.is-mobile .audio-button-time {
+.is-mobile .audio-recorder-time {
 	font-size: 14px;
 }
 
-.is-mobile .audio-button-expand {
+.is-mobile .audio-recorder-expand {
 	--icon-size: 18px;
 }
 
 /* Recorder dialog */
-.audio-button-modal-container .modal-bg {
-	background-color: #000;
-	opacity: 0.35;
-}
-
-.modal.audio-button-modal {
+.modal.audio-recorder-modal {
 	width: 520px;
 	max-width: calc(100vw - 32px);
 	padding: 20px;
@@ -150,26 +145,26 @@
 	box-shadow: var(--shadow-l);
 }
 
-.audio-button-modal .modal-close-button,
-.audio-button-modal .modal-header,
-.audio-button-modal .modal-title {
+.audio-recorder-modal .modal-close-button,
+.audio-recorder-modal .modal-header,
+.audio-recorder-modal .modal-title {
 	display: none;
 }
 
-.audio-button-modal .modal-content {
+.audio-recorder-modal .modal-content {
 	display: flex;
 	flex-direction: column;
 	gap: 18px;
 }
 
-.audio-button-modal-header {
+.audio-recorder-modal-header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
 }
 
-.audio-button-target {
+.audio-recorder-target {
 	display: flex;
 	gap: 5px;
 	min-width: 0;
@@ -178,17 +173,17 @@
 	white-space: nowrap;
 }
 
-.audio-button-target-label {
+.audio-recorder-target-label {
 	color: var(--text-faint);
 }
 
-.audio-button-target-note {
+.audio-recorder-target-note {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	color: var(--text-normal);
 }
 
-.audio-button-minimize {
+.audio-recorder-minimize {
 	flex: none;
 	width: 28px;
 	height: 28px;
@@ -197,7 +192,7 @@
 	--icon-size: 16px;
 }
 
-.audio-button-meter-panel {
+.audio-recorder-meter-panel {
 	display: flex;
 	justify-content: center;
 	height: 112px;
@@ -207,7 +202,7 @@
 	overflow: hidden;
 }
 
-.audio-button-meter {
+.audio-recorder-meter {
 	display: flex;
 	flex: 1;
 	align-items: center;
@@ -216,7 +211,7 @@
 	overflow: hidden;
 }
 
-.audio-button-bar {
+.audio-recorder-bar {
 	flex: none;
 	width: 3px;
 	height: var(--bar-height, 3px);
@@ -224,11 +219,11 @@
 	background-color: var(--interactive-accent);
 }
 
-.audio-button-modal.is-paused .audio-button-meter {
+.audio-recorder-modal.is-paused .audio-recorder-meter {
 	opacity: 0.35;
 }
 
-.audio-button-modal-time {
+.audio-recorder-modal-time {
 	text-align: center;
 	font-family: var(--font-monospace);
 	font-size: 46px;
@@ -238,7 +233,7 @@
 	color: var(--text-normal);
 }
 
-.audio-button-controls {
+.audio-recorder-controls {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -246,7 +241,7 @@
 	padding-top: 4px;
 }
 
-.audio-button-modal .audio-button-control {
+.audio-recorder-modal .audio-recorder-control {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -261,12 +256,12 @@
 	--icon-size: 18px;
 }
 
-.audio-button-modal .audio-button-control:hover {
+.audio-recorder-modal .audio-recorder-control:hover {
 	background-color: var(--background-modifier-hover);
 	color: var(--text-normal);
 }
 
-.audio-button-modal .audio-button-control.mod-primary {
+.audio-recorder-modal .audio-recorder-control.mod-primary {
 	width: 64px;
 	height: 64px;
 	border: none;
@@ -275,27 +270,27 @@
 	--icon-size: 26px;
 }
 
-.audio-button-modal .audio-button-control.mod-primary:hover {
+.audio-recorder-modal .audio-recorder-control.mod-primary:hover {
 	background-color: var(--interactive-accent-hover);
 	color: var(--text-on-accent);
 }
 
-.audio-button-modal .audio-button-control:focus-visible {
+.audio-recorder-modal .audio-recorder-control:focus-visible {
 	box-shadow: 0 0 0 2px var(--interactive-accent);
 }
 
-.audio-button-modal .audio-button-control.mod-primary:focus-visible {
+.audio-recorder-modal .audio-recorder-control.mod-primary:focus-visible {
 	box-shadow:
 		0 0 0 2px var(--background-primary),
 		0 0 0 4px var(--interactive-accent);
 }
 
 /* Mobile: full-width bottom sheet */
-.is-mobile .audio-button-modal-container {
+.is-mobile .audio-recorder-modal-container {
 	align-items: flex-end;
 }
 
-.is-mobile .modal.audio-button-modal {
+.is-mobile .modal.audio-recorder-modal {
 	width: 100%;
 	max-width: 100%;
 	max-height: none;
@@ -307,11 +302,11 @@
 	transform: translateY(var(--sheet-offset, 0px));
 }
 
-.is-mobile .audio-button-modal .modal-content {
+.is-mobile .audio-recorder-modal .modal-content {
 	gap: 16px;
 }
 
-.audio-button-grabber {
+.audio-recorder-grabber {
 	align-self: center;
 	width: 36px;
 	height: 4px;
@@ -319,46 +314,46 @@
 	background-color: var(--background-modifier-border);
 }
 
-.is-mobile .audio-button-minimize {
+.is-mobile .audio-recorder-minimize {
 	width: 36px;
 	height: 36px;
 	--icon-size: 20px;
 }
 
-.is-mobile .audio-button-meter-panel {
+.is-mobile .audio-recorder-meter-panel {
 	height: 96px;
 	padding: 0 12px;
 }
 
-.is-mobile .audio-button-controls {
+.is-mobile .audio-recorder-controls {
 	gap: 34px;
 	padding-top: 6px;
 }
 
-.is-mobile .audio-button-modal .audio-button-control {
+.is-mobile .audio-recorder-modal .audio-recorder-control {
 	width: 52px;
 	height: 52px;
 	--icon-size: 22px;
 }
 
-.is-mobile .audio-button-modal .audio-button-control.mod-primary {
+.is-mobile .audio-recorder-modal .audio-recorder-control.mod-primary {
 	width: 76px;
 	height: 76px;
 	--icon-size: 30px;
 }
 
-@keyframes audio-button-pulse {
+@keyframes audio-recorder-pulse {
 	50% {
 		opacity: 0.3;
 	}
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.audio-button-dot {
+	.audio-recorder-dot {
 		animation: none;
 	}
 
-	.audio-button-mic {
+	.audio-recorder-mic {
 		transition: none;
 	}
 }

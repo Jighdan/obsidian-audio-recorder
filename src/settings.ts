@@ -1,10 +1,10 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import type AudioButtonPlugin from './main';
+import type AudioRecorderPlugin from './main';
 
 export type Scope = 'all' | 'folder' | 'tag';
 export type InsertPosition = 'cursor' | 'end';
 
-export interface AudioButtonSettings {
+export interface AudioRecorderSettings {
 	/** Which notes show the floating button. */
 	scope: Scope;
 	/** Folder path used when scope is 'folder'. Subfolders are included. */
@@ -19,7 +19,7 @@ export interface AudioButtonSettings {
 	insertPosition: InsertPosition;
 }
 
-export const DEFAULT_SETTINGS: AudioButtonSettings = {
+export const DEFAULT_SETTINGS: AudioRecorderSettings = {
 	scope: 'all',
 	folder: '',
 	tag: '',
@@ -28,37 +28,17 @@ export const DEFAULT_SETTINGS: AudioButtonSettings = {
 	insertPosition: 'end',
 };
 
-/** Settings saved by 0.1.0, which allowed several folders and tags. */
-interface LegacySettings {
-	folders?: string[];
-	tags?: string[];
-	matchMode?: string;
-}
-
-/** Merge saved data with defaults, converting the old folders/tags lists to a single scope. */
-export function loadSettings(data: unknown): AudioButtonSettings {
-	const saved = (data ?? {}) as Partial<AudioButtonSettings> & LegacySettings;
-	const { folders, tags, matchMode: _matchMode, ...rest } = saved;
-	const settings: AudioButtonSettings = Object.assign({}, DEFAULT_SETTINGS, rest);
-
-	if (saved.scope === undefined) {
-		if (folders?.[0]) {
-			settings.scope = 'folder';
-			settings.folder = folders[0];
-		} else if (tags?.[0]) {
-			settings.scope = 'tag';
-			settings.tag = tags[0];
-		}
-	}
-	return settings;
+/** Merge saved data with defaults. */
+export function loadSettings(data: unknown): AudioRecorderSettings {
+	return Object.assign({}, DEFAULT_SETTINGS, data as Partial<AudioRecorderSettings> | null);
 }
 
 const trimSlashes = (path: string) => path.trim().replace(/^\/+|\/+$/g, '');
 
-export class AudioButtonSettingTab extends PluginSettingTab {
-	plugin: AudioButtonPlugin;
+export class AudioRecorderSettingTab extends PluginSettingTab {
+	plugin: AudioRecorderPlugin;
 
-	constructor(app: App, plugin: AudioButtonPlugin) {
+	constructor(app: App, plugin: AudioRecorderPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -107,7 +87,7 @@ export class AudioButtonSettingTab extends PluginSettingTab {
 				.setDesc('With or without "#". Nested tags also match.')
 				.addText((text) =>
 					text
-						.setPlaceholder('#meeting')
+						.setPlaceholder('Meeting')
 						.setValue(settings.tag)
 						.onChange(async (value) => {
 							settings.tag = value.trim().replace(/^#/, '');

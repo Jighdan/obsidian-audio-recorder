@@ -34,37 +34,37 @@ export class RecorderModal extends Modal {
 		private handlers: RecorderModalHandlers,
 	) {
 		super(app);
-		this.containerEl.addClass('audio-button-modal-container');
-		this.modalEl.addClass('audio-button-modal');
+		this.containerEl.addClass('audio-recorder-modal-container');
+		this.modalEl.addClass('audio-recorder-modal');
 
 		const { contentEl } = this;
-		if (Platform.isMobile) contentEl.createDiv({ cls: 'audio-button-grabber' });
+		if (Platform.isMobile) contentEl.createDiv({ cls: 'audio-recorder-grabber' });
 
-		const header = contentEl.createDiv({ cls: 'audio-button-modal-header' });
-		const target = header.createDiv({ cls: 'audio-button-target' });
-		target.createSpan({ cls: 'audio-button-target-label', text: 'Recording into' });
-		this.noteEl = target.createSpan({ cls: 'audio-button-target-note' });
+		const header = contentEl.createDiv({ cls: 'audio-recorder-modal-header' });
+		const target = header.createDiv({ cls: 'audio-recorder-target' });
+		target.createSpan({ cls: 'audio-recorder-target-label', text: 'Recording into' });
+		this.noteEl = target.createSpan({ cls: 'audio-recorder-target-note' });
 
-		const minimizeBtn = header.createEl('button', { cls: 'clickable-icon audio-button-minimize' });
+		const minimizeBtn = header.createEl('button', { cls: 'clickable-icon audio-recorder-minimize' });
 		setIcon(minimizeBtn, 'chevron-down');
 		setTooltip(minimizeBtn, 'Minimize', { placement: 'left' });
 		minimizeBtn.addEventListener('click', () => this.close());
 
-		const panel = contentEl.createDiv({ cls: 'audio-button-meter-panel' });
-		this.meterEl = panel.createDiv({ cls: 'audio-button-meter' });
+		const panel = contentEl.createDiv({ cls: 'audio-recorder-meter-panel' });
+		this.meterEl = panel.createDiv({ cls: 'audio-recorder-meter' });
 
-		this.timeEl = contentEl.createDiv({ cls: 'audio-button-modal-time', text: '00:00' });
+		this.timeEl = contentEl.createDiv({ cls: 'audio-recorder-modal-time', text: '00:00' });
 
-		const controls = contentEl.createDiv({ cls: 'audio-button-controls' });
-		const discardBtn = controls.createEl('button', { cls: 'audio-button-control' });
+		const controls = contentEl.createDiv({ cls: 'audio-recorder-controls' });
+		const discardBtn = controls.createEl('button', { cls: 'audio-recorder-control' });
 		setIcon(discardBtn, 'trash-2');
 		setTooltip(discardBtn, 'Discard recording', { placement: 'top' });
 		discardBtn.addEventListener('click', () => handlers.onDiscard());
 
-		this.pauseBtn = controls.createEl('button', { cls: 'audio-button-control mod-primary' });
+		this.pauseBtn = controls.createEl('button', { cls: 'audio-recorder-control mod-primary' });
 		this.pauseBtn.addEventListener('click', () => handlers.onPauseToggle());
 
-		const stopBtn = controls.createEl('button', { cls: 'audio-button-control' });
+		const stopBtn = controls.createEl('button', { cls: 'audio-recorder-control' });
 		setIcon(stopBtn, 'square');
 		setTooltip(stopBtn, 'Stop and save', { placement: 'top' });
 		stopBtn.addEventListener('click', () => handlers.onStop());
@@ -113,7 +113,7 @@ export class RecorderModal extends Modal {
 		const count = Math.max(1, Math.floor((this.meterEl.clientWidth + 4) / BAR_PITCH));
 		if (count === this.bars.length) return;
 		this.meterEl.empty();
-		this.bars = Array.from({ length: count }, () => this.meterEl.createDiv({ cls: 'audio-button-bar' }));
+		this.bars = Array.from({ length: count }, () => this.meterEl.createDiv({ cls: 'audio-recorder-bar' }));
 		this.renderMeter();
 	}
 
@@ -131,7 +131,7 @@ export class RecorderModal extends Modal {
 		let dy = 0;
 		this.modalEl.addEventListener('touchstart', (e) => {
 			// Only start a drag from the top of the sheet, not from the controls.
-			if ((e.target as HTMLElement).closest('.audio-button-controls')) return;
+			if ((e.target as HTMLElement).closest('.audio-recorder-controls')) return;
 			startY = e.touches[0]?.clientY ?? null;
 			dy = 0;
 		});
