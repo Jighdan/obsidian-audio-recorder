@@ -37,7 +37,8 @@ pnpm build
 
 - ESLint is preconfigured with `eslint-plugin-obsidianmd` for Obsidian-specific rules.
 - Run `pnpm lint` to lint the project.
-- A GitHub Action automatically lints every commit on all branches.
+- Lefthook runs ESLint on staged files before each commit (`lefthook.yml`). Hooks install automatically on `pnpm install`.
+- Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org) (e.g. `feat: add waveform`, `fix: …`, `chore: …`); commitlint checks them in the `commit-msg` hook.
 
 ## File & folder conventions
 

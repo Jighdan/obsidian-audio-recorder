@@ -16,6 +16,8 @@ pnpm dev     # watch build
 pnpm build   # production build
 ```
 
+`pnpm install` also sets up git hooks: ESLint runs on staged files before each commit, and commit messages must follow [Conventional Commits](https://www.conventionalcommits.org).
+
 To build straight into a vault, create a `.env` file with:
 
 ```
