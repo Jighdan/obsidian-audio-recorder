@@ -66,7 +66,7 @@ export class RecordingController {
 		try {
 			await this.recorder.start();
 		} catch (err) {
-			console.error('Audio recorder: could not start recording', err);
+			console.error('Minimalist Audio Recorder: could not start recording', err);
 			new Notice('Could not access the microphone.');
 			return;
 		}
@@ -100,7 +100,7 @@ export class RecordingController {
 			const audioFile = await saveRecording(this.plugin.app, this.plugin.settings, recording, target);
 			new Notice(`Saved ${audioFile.name}`);
 		} catch (err) {
-			console.error('Audio recorder: could not save recording', err);
+			console.error('Minimalist Audio Recorder: could not save recording', err);
 			new Notice('Could not save the recording.');
 		}
 	}

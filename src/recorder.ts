@@ -116,7 +116,7 @@ export class AudioRecorder {
 			this.samples = new Float32Array(this.analyser.fftSize);
 		} catch (err) {
 			// The meter is cosmetic; recording works without it.
-			console.warn('Audio recorder: level meter unavailable', err);
+			console.warn('Minimalist Audio Recorder: level meter unavailable', err);
 		}
 	}
 

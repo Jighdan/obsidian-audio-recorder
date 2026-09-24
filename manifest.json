@@ -1,6 +1,6 @@
 {
-	"id": "audio-recorder",
-	"name": "Audio Recorder",
+	"id": "minimalist-audio-recorder",
+	"name": "Minimalist Audio Recorder",
 	"version": "0.1.0",
 	"minAppVersion": "1.5.7",
 	"description": "A small floating button for recording voice notes into notes that match a folder or tag.",
