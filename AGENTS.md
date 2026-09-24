@@ -94,6 +94,7 @@ pnpm build
 
 ## Versioning & releases
 
+- Record user-facing changes under `## [Unreleased]` in `CHANGELOG.md` as you make them. On release, rename that section to `## [x.y.z] - YYYY-MM-DD` and start a new empty `Unreleased` section.
 - Bump `version` in `manifest.json` (SemVer) and update `versions.json` to map plugin version → minimum app version.
 - Create a GitHub release whose tag exactly matches `manifest.json`'s `version`. Do not use a leading `v`.
 - Attach `manifest.json`, `main.js`, and `styles.css` (if present) to the release as individual assets.
