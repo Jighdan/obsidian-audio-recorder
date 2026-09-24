@@ -36,6 +36,9 @@ export class RecorderModal extends Modal {
 		super(app);
 		this.containerEl.addClass('audio-recorder-modal-container');
 		this.modalEl.addClass('audio-recorder-modal');
+		// The chevron is our only close control. Remove Obsidian's built-in X
+		// outright: some themes/versions override the CSS that hides it.
+		this.modalEl.querySelector('.modal-close-button')?.remove();
 
 		const { contentEl } = this;
 		if (Platform.isMobile) contentEl.createDiv({ cls: 'audio-recorder-grabber' });
